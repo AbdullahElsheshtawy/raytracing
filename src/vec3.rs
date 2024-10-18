@@ -62,6 +62,18 @@ impl Div<f32> for Vec3 {
         Vec3::new(self.x / rhs, self.y / rhs, self.z / rhs)
     }
 }
+
+impl Div<i32> for Vec3 {
+    type Output = Vec3;
+
+    fn div(self, rhs: i32) -> Self::Output {
+        Vec3::new(
+            self.x / rhs as f32,
+            self.y / rhs as f32,
+            self.z / rhs as f32,
+        )
+    }
+}
 impl DivAssign<f32> for Vec3 {
     fn div_assign(&mut self, rhs: f32) {
         *self = *self / rhs;
@@ -81,6 +93,16 @@ impl DivAssign for Vec3 {
     }
 }
 
+impl Mul<i32> for Vec3 {
+    type Output = Vec3;
+    fn mul(self, rhs: i32) -> Self::Output {
+        Vec3::new(
+            self.x * rhs as f32,
+            self.y * rhs as f32,
+            self.y * rhs as f32,
+        )
+    }
+}
 impl Mul<f32> for Vec3 {
     type Output = Vec3;
 
