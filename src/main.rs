@@ -1,8 +1,19 @@
+mod hittable;
+mod hittable_list;
 mod ray;
+mod sphere;
 mod vec3;
+use core::f32;
+use std::rc::Rc;
+
+use hittable::{HitRecord, Hittable};
+use hittable_list::HittableList;
 use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
 use ray::Ray;
+use sphere::Sphere;
 use vec3::*;
+
+const INIFINTY: f32 = f32::INFINITY;
 
 fn write_color(color: &Vec3) {
     let (r, g, b) = (color.x(), color.y(), color.z());
@@ -17,42 +28,50 @@ fn write_color(color: &Vec3) {
 
 fn hit_sphere(center: Vec3, radius: f32, r: &Ray) -> Option<f32> {
     let oc = center - *r.origin();
-    let a = dot(r.direction(), r.direction());
-    let b = 2.0 * dot(r.direction(), &oc);
-    let c = dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
+    let a = r.direction().length_squared();
+    let h = dot(r.direction(), &oc);
+    let c = oc.length_squared() - radius * radius;
+    let discriminant = h * h - a * c;
 
     if discriminant < 0.0 {
         return None;
     }
 
-    Some((-b - discriminant.sqrt()) / (2.0 * a))
+    Some((h - f32::sqrt(discriminant)) / a)
 }
 
-fn ray_color(r: &Ray) -> Vec3 {
-    if let Some(t) = { hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, r) } {
-        let n = r.at(t) - Vec3::new(0.0, 0.0, -1.0);
-        return Vec3::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0) * 0.5;
+fn ray_color(r: &Ray, world: &HittableList) -> Vec3 {
+    let mut rec = HitRecord::default();
+
+    if world.hit(r, 0.0, INIFINTY, &mut rec) {
+        return (rec.normal + Vec3::new(1.0, 1.0, 1.0)) * 0.5;
     }
+
     let unit_direction = r.direction().normalize();
     let a = 0.5 * (unit_direction.y() + 1.0);
+
     (Vec3::new(1.0, 1.0, 1.0) * (1.0 - a)) + (Vec3::new(0.5, 0.7, 1.0) * a)
 }
 
 fn main() {
     // Image
     let aspect_ratio = 16.0 / 9.0;
-    let image_width = 1920;
+    let image_width = 400;
 
     // Calculate the image height and ensure that it's atleast 1
     let image_height = image_width as f32 / aspect_ratio;
     assert!(image_height != 1.0);
 
+    // World
+    let mut world = HittableList::default();
+    world.add(Rc::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Rc::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
+
     // Camera
     let focal_length = 1.0;
     let viewport_height = 2.0;
     let viewport_width = viewport_height * image_width as f32 / image_height;
-    let camera_center = Vec3::new(0.0, 0.0, 1.0);
+    let camera_center = Vec3::new(0.0, 0.0, 0.0);
 
     // Calculate the vectors across the horizontal and down the vertical viewport edges
     let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
@@ -85,7 +104,7 @@ fn main() {
             let ray_direction = pixel_center - camera_center;
             let ray = Ray::new(camera_center, ray_direction);
 
-            let pixel_color = ray_color(&ray);
+            let pixel_color = ray_color(&ray, &world);
             write_color(&pixel_color);
         }
     }

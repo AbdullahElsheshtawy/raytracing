@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
@@ -15,7 +15,7 @@ impl Vec3 {
         f32::sqrt(self.length_squared())
     }
 
-    fn length_squared(&self) -> f32 {
+    pub fn length_squared(&self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
@@ -155,6 +155,13 @@ impl Add for Vec3 {
 impl AddAssign for Vec3 {
     fn add_assign(&mut self, rhs: Self) {
         *self = *self + rhs;
+    }
+}
+
+impl Neg for Vec3 {
+    type Output = Vec3;
+    fn neg(self) -> Self::Output {
+        Vec3::new(-self.x, -self.y, -self.z)
     }
 }
 
