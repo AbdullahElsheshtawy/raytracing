@@ -1,14 +1,16 @@
 mod hittable;
 mod hittable_list;
+mod interval;
 mod ray;
 mod sphere;
 mod vec3;
 use core::f32;
-use std::rc::Rc;
+use std::{f32::INFINITY, rc::Rc};
 
 use hittable::{HitRecord, Hittable};
 use hittable_list::HittableList;
 use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
+use interval::Interval;
 use ray::Ray;
 use sphere::Sphere;
 use vec3::*;
@@ -43,7 +45,7 @@ fn hit_sphere(center: Vec3, radius: f32, r: &Ray) -> Option<f32> {
 fn ray_color(r: &Ray, world: &HittableList) -> Vec3 {
     let mut rec = HitRecord::default();
 
-    if world.hit(r, 0.0, INIFINTY, &mut rec) {
+    if world.hit(r, Interval::new(0.0, INFINITY), &mut rec) {
         return (rec.normal + Vec3::new(1.0, 1.0, 1.0)) * 0.5;
     }
 
@@ -71,7 +73,7 @@ fn main() {
     let focal_length = 1.0;
     let viewport_height = 2.0;
     let viewport_width = viewport_height * image_width as f32 / image_height;
-    let camera_center = Vec3::new(0.0, 0.0, 0.0);
+    let camera_center = Vec3::new(0.0, 0.0, 1.0);
 
     // Calculate the vectors across the horizontal and down the vertical viewport edges
     let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
@@ -88,7 +90,7 @@ fn main() {
     let upper_left_pixel_loc = ((pixel_delta_u + pixel_delta_v) * 0.5) + viewport_upper_left;
 
     // Progress Bar
-    let pb = ProgressBar::new(1000);
+    let pb = ProgressBar::new(image_width as u64);
     pb.set_style(
         ProgressStyle::with_template(
             "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({pos}/{len}, ETA {eta})",
