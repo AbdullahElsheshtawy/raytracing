@@ -2,20 +2,19 @@ use crate::{
     hittable::{HitRecord, Hittable},
     interval::Interval,
 };
-use std::rc::Rc;
 
 pub struct HittableList {
-    pub objects: Vec<Rc<dyn Hittable>>,
+    pub objects: Vec<Box<dyn Hittable>>,
 }
 
 impl HittableList {
-    pub fn new(object: Rc<dyn Hittable>) -> Self {
+    pub fn new(object: Box<dyn Hittable>) -> Self {
         let mut hl = Self::default();
         hl.add(object);
         hl
     }
 
-    pub fn add(&mut self, object: Rc<dyn Hittable>) {
+    pub fn add(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
     }
 

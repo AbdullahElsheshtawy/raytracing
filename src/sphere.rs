@@ -1,4 +1,4 @@
-use crate::{dot, hittable::Hittable, interval::Interval, Vec3};
+use crate::{hittable::Hittable, interval::Interval, vec3::dot, Vec3};
 
 pub struct Sphere {
     center: Vec3,
