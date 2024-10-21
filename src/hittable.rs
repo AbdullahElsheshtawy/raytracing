@@ -1,5 +1,5 @@
 use crate::{interval::Interval, ray::Ray, vec3::dot, Vec3};
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,
@@ -22,16 +22,5 @@ impl HitRecord {
             true => outward_normal,
             false => -outward_normal,
         };
-    }
-}
-
-impl Default for HitRecord {
-    fn default() -> Self {
-        HitRecord {
-            p: Vec3::default(),
-            normal: Vec3::default(),
-            t: f32::default(),
-            front_face: bool::default(),
-        }
     }
 }

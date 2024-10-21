@@ -3,6 +3,7 @@ use crate::{
     interval::Interval,
 };
 
+#[derive(Default)]
 pub struct HittableList {
     pub objects: Vec<Box<dyn Hittable>>,
 }
@@ -47,13 +48,5 @@ impl Hittable for HittableList {
             }
         }
         hit_anything
-    }
-}
-
-impl Default for HittableList {
-    fn default() -> Self {
-        HittableList {
-            objects: Vec::default(),
-        }
     }
 }
