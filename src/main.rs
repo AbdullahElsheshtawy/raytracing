@@ -4,6 +4,7 @@ mod hittable_list;
 mod interval;
 mod ray;
 mod sphere;
+mod util;
 mod vec3;
 use camera::Camera;
 use hittable_list::HittableList;
