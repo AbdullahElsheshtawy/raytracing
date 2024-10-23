@@ -1,10 +1,12 @@
-use crate::{interval::Interval, ray::Ray, vec3::dot, Vec3};
+use crate::{interval::Interval, material::Material, ray::Ray, vec3::dot, Vec3};
+
 #[derive(Clone, Copy, Default)]
 pub struct HitRecord {
-    pub p: Vec3,
-    pub normal: Vec3,
-    pub t: f32,
     front_face: bool,
+    pub mat: Material,
+    pub normal: Vec3,
+    pub p: Vec3,
+    pub t: f32,
 }
 
 pub trait Hittable {

@@ -3,7 +3,7 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-use crate::util::{self, rand, rand_f32};
+use crate::util::{rand, rand_f32};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vec3 {
@@ -45,6 +45,12 @@ impl Vec3 {
     fn random_range(min: f32, max: f32) -> Vec3 {
         Vec3::new(rand(min, max), rand(min, max), rand(min, max))
     }
+
+    pub fn near_zero(&self) -> bool {
+        // Return true if the vector is close to zero in all dimensions.
+        let s = 1e-8;
+        self.x < s && self.y < s && self.z < s
+    }
 }
 
 pub fn dot(v1: &Vec3, v2: &Vec3) -> f32 {
@@ -59,6 +65,9 @@ pub fn cross(v1: &Vec3, v2: &Vec3) -> Vec3 {
     )
 }
 
+pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+    *v - 2.0 * dot(v, n) * *n
+}
 pub fn random_vec() -> Vec3 {
     loop {
         let p = Vec3::random_range(-1.0, 1.0);
@@ -202,42 +211,39 @@ impl Neg for Vec3 {
     }
 }
 
-mod test_vec3 {
+#[test]
+fn test_div() {
+    let v1 = Vec3::new(2.0, 2.0, 2.0);
+    let v2 = v1;
+    let result = Vec3::new(1.0, 1.0, 1.0);
 
-    #[test]
-    fn test_div() {
-        let v1 = Vec3::new(2.0, 2.0, 2.0);
-        let v2 = v1.clone();
-        let result = Vec3::new(1.0, 1.0, 1.0);
+    assert_eq!(v1 / 2.0, result);
+    assert_eq!(v1 / v2, result);
+}
 
-        assert_eq!(v1 / 2.0, result);
-        assert_eq!(v1 / v2, result);
-    }
+#[test]
+fn test_mul() {
+    let v1 = Vec3::new(2.0, 2.0, 2.0);
+    let v2 = v1;
+    let result = Vec3::new(4.0, 4.0, 4.0);
 
-    #[test]
-    fn test_mul() {
-        let v1 = Vec3::new(2.0, 2.0, 2.0);
-        let v2 = v1.clone();
-        let result = Vec3::new(4.0, 4.0, 4.0);
+    assert_eq!(v1 * 2.0, result);
+    assert_eq!(v1 * v2, result);
+}
 
-        assert_eq!(v1 * 2.0, result);
-        assert_eq!(v1 * v2, result);
-    }
+#[test]
+fn test_sub() {
+    let v1 = Vec3::new(2.0, 2.0, 2.0);
+    let v2 = v1;
+    let result = Vec3::new(0.0, 0.0, 0.0);
 
-    #[test]
-    fn test_sub() {
-        let v1 = Vec3::new(2.0, 2.0, 2.0);
-        let v2 = v1.clone();
-        let result = Vec3::new(0.0, 0.0, 0.0);
+    assert_eq!(v1 - v2, result);
+}
+#[test]
+fn test_add() {
+    let v1 = Vec3::new(2.0, 2.0, 2.0);
+    let v2 = v1;
+    let result = Vec3::new(4.0, 4.0, 4.0);
 
-        assert_eq!(v1 - v2, result);
-    }
-    #[test]
-    fn test_add() {
-        let v1 = Vec3::new(2.0, 2.0, 2.0);
-        let v2 = v1.clone();
-        let result = Vec3::new(4.0, 4.0, 4.0);
-
-        assert_eq!(v1 + v2, result);
-    }
+    assert_eq!(v1 + v2, result);
 }

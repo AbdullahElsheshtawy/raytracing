@@ -1,13 +1,13 @@
 use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
 
 use crate::{
+    color::write_color,
     hittable::{HitRecord, Hittable},
     hittable_list::HittableList,
     interval::Interval,
     ray::Ray,
     util::rand_f32,
-    vec3::{random_on_hemisphere, random_vec},
-    write_color, Vec3,
+    Vec3,
 };
 
 pub struct Camera {
@@ -111,8 +111,14 @@ impl Camera {
         let mut rec = HitRecord::default();
 
         if world.hit(r, Interval::new(0.001, f32::INFINITY), &mut rec) {
-            let direction = rec.normal + random_vec();
-            return 0.5 * self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
+            let mut scattered = Ray::default();
+            let mut attenuation = Vec3::default();
+
+            if rec.mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+                return attenuation * self.ray_color(&scattered, depth - 1, world);
+            }
+
+            return Vec3::default();
         }
 
         let unit_direction = r.direction().normalize();
