@@ -3,6 +3,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+use crate::util::{self, rand, rand_f32};
+
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vec3 {
     x: f32,
@@ -35,6 +37,14 @@ impl Vec3 {
     pub fn z(&self) -> f32 {
         self.z
     }
+
+    fn random() -> Vec3 {
+        Vec3::new(rand_f32(), rand_f32(), rand_f32())
+    }
+
+    fn random_range(min: f32, max: f32) -> Vec3 {
+        Vec3::new(rand(min, max), rand(min, max), rand(min, max))
+    }
 }
 
 pub fn dot(v1: &Vec3, v2: &Vec3) -> f32 {
@@ -47,6 +57,26 @@ pub fn cross(v1: &Vec3, v2: &Vec3) -> Vec3 {
         v1.z() * v2.x() - v1.x() * v2.z(),
         v1.x() * v2.y() - v1.y() * v2.x(),
     )
+}
+
+pub fn random_vec() -> Vec3 {
+    loop {
+        let p = Vec3::random_range(-1.0, 1.0);
+        let lenth_squared = p.length_squared();
+        if 1e-160 < lenth_squared && lenth_squared <= 1.0 {
+            return p / lenth_squared.sqrt();
+        }
+    }
+}
+
+pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+    let on_unit_sphere = random_vec();
+    // In the same himisphere as the normal
+    if dot(&on_unit_sphere, normal) > 0.0 {
+        return on_unit_sphere;
+    }
+
+    -on_unit_sphere
 }
 
 impl Display for Vec3 {

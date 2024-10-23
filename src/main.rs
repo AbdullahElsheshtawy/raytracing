@@ -31,5 +31,6 @@ fn main() {
 
     let mut cam = Camera::new(400, 16.0 / 9.0);
     cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
     cam.render(&world);
 }

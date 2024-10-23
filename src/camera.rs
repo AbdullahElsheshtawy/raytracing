@@ -6,13 +6,15 @@ use crate::{
     interval::Interval,
     ray::Ray,
     util::rand_f32,
+    vec3::{random_on_hemisphere, random_vec},
     write_color, Vec3,
 };
 
 pub struct Camera {
-    pub aspect_ratio: f32,
-    pub image_width: i32,
-    pub samples_per_pixel: i32,
+    pub aspect_ratio: f32,      // Ratio of image width over height
+    pub image_width: i32,       // Rendered image width in pixel count
+    pub samples_per_pixel: i32, // Count of random samples for each pixel
+    pub max_depth: u32,         // Maximum number of ray bounces into the scene
 
     image_height: i32,          // Rendered image height
     pixel_samples_scale: f32,   // Color scale factor for a sum of pixel samples
@@ -49,7 +51,7 @@ impl Camera {
             let mut pixel_color = Vec3::default();
             for _sample in 0..self.samples_per_pixel {
                 let r = self.get_ray(i, j);
-                pixel_color += self.ray_color(&r, world);
+                pixel_color += self.ray_color(&r, self.max_depth, world);
             }
             write_color(&(pixel_color * self.pixel_samples_scale));
         }
@@ -100,11 +102,17 @@ impl Camera {
         // Returns the vector to a random point in the [-.5, -.5] - [+.5, +.5] unit square.
         Vec3::new(rand_f32() - 0.5, rand_f32() - 0.5, 0.0)
     }
-    fn ray_color(&self, r: &Ray, world: &HittableList) -> Vec3 {
+    fn ray_color(&self, r: &Ray, depth: u32, world: &HittableList) -> Vec3 {
+        // If we've exceeded the ray bounce limit, no more light is gathered.
+        if depth <= 0 {
+            return Vec3::default();
+        }
+
         let mut rec = HitRecord::default();
 
-        if world.hit(r, Interval::new(0.0, f32::INFINITY), &mut rec) {
-            return (rec.normal + Vec3::new(1.0, 1.0, 1.0)) * 0.5;
+        if world.hit(r, Interval::new(0.001, f32::INFINITY), &mut rec) {
+            let direction = rec.normal + random_vec();
+            return 0.5 * self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
         }
 
         let unit_direction = r.direction().normalize();
@@ -120,6 +128,7 @@ impl Default for Camera {
             aspect_ratio: 16.0 / 9.0,
             image_width: 100,
             samples_per_pixel: 10,
+            max_depth: 10,
             pixel_samples_scale: f32::default(),
             image_height: i32::default(),
             center: Vec3::default(),
