@@ -9,18 +9,8 @@ pub struct HittableList {
 }
 
 impl HittableList {
-    pub fn new(object: Box<dyn Hittable>) -> Self {
-        let mut hl = Self::default();
-        hl.add(object);
-        hl
-    }
-
     pub fn add(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
-    }
-
-    pub fn clear(&mut self) {
-        self.objects.clear();
     }
 }
 

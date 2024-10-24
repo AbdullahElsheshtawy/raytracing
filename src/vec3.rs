@@ -3,7 +3,7 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-use crate::util::{rand, rand_f32};
+use crate::util::rand;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vec3 {
@@ -38,19 +38,15 @@ impl Vec3 {
         self.z
     }
 
-    fn random() -> Vec3 {
-        Vec3::new(rand_f32(), rand_f32(), rand_f32())
-    }
-
-    fn random_range(min: f32, max: f32) -> Vec3 {
-        Vec3::new(rand(min, max), rand(min, max), rand(min, max))
-    }
-
     pub fn near_zero(&self) -> bool {
         // Return true if the vector is close to zero in all dimensions.
         let s = 1e-8;
         self.x < s && self.y < s && self.z < s
     }
+}
+
+pub fn random_range(min: f32, max: f32) -> Vec3 {
+    Vec3::new(rand(min, max), rand(min, max), rand(min, max))
 }
 
 pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f32) -> Vec3 {
@@ -87,22 +83,12 @@ pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
 }
 pub fn random_vec() -> Vec3 {
     loop {
-        let p = Vec3::random_range(-1.0, 1.0);
+        let p = random_range(-1.0, 1.0);
         let lenth_squared = p.length_squared();
         if 1e-160 < lenth_squared && lenth_squared <= 1.0 {
             return p / lenth_squared.sqrt();
         }
     }
-}
-
-pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
-    let on_unit_sphere = random_vec();
-    // In the same himisphere as the normal
-    if dot(&on_unit_sphere, normal) > 0.0 {
-        return on_unit_sphere;
-    }
-
-    -on_unit_sphere
 }
 
 impl Display for Vec3 {

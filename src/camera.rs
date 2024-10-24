@@ -134,7 +134,7 @@ impl Camera {
 
     fn ray_color(&self, r: &Ray, depth: u32, world: &HittableList) -> Vec3 {
         // If we've exceeded the ray bounce limit, no more light is gathered.
-        if depth <= 0 {
+        if depth == 0 {
             return Vec3::default();
         }
 

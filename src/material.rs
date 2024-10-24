@@ -90,14 +90,12 @@ impl Material {
         let sin_theta = f32::sqrt(1.0 - cos_theta * cos_theta);
 
         let cannot_refract = ri * sin_theta > 1.0;
-        let mut direction = Vec3::default();
 
-        if cannot_refract || reflectance(cos_theta, ri) > rand_f32() {
-            direction = reflect(&unit_direction, &rec.normal);
+        let direction = if cannot_refract || reflectance(cos_theta, ri) > rand_f32() {
+            reflect(&unit_direction, &rec.normal)
         } else {
-            direction = refract(&unit_direction, &rec.normal, ri);
-        }
-
+            refract(&unit_direction, &rec.normal, ri)
+        };
         *scattered = Ray::new(rec.p, direction);
         true
     }

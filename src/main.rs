@@ -12,71 +12,102 @@ use camera::Camera;
 use hittable_list::HittableList;
 use material::Material;
 use sphere::Sphere;
-use vec3::Vec3;
+use util::{rand, rand_f32};
+use vec3::{random_range, random_vec, Vec3};
 
 fn main() {
     let mut world = HittableList::default();
-    let material_ground = Material::Lambartian {
-        albedo: Vec3::new(0.8, 0.8, 0.0),
-    };
 
-    let material_center = Material::Lambartian {
-        albedo: Vec3::new(0.1, 0.2, 0.5),
+    let ground_material = Material::Lambartian {
+        albedo: Vec3::new(0.5, 0.5, 0.5),
     };
-
-    let material_left = Material::Dialetric {
-        refraction_index: 1.50,
-    };
-    let material_bubble = Material::Dialetric {
-        refraction_index: 1.00 / 1.50,
-    };
-
-    let material_right = Material::Metal {
-        albedo: Vec3::new(0.8, 0.6, 0.2),
-        fuzz: 1.0,
-    };
-
     world.add(Box::new(Sphere::new(
-        Vec3::new(0.0, -100.5, -1.0),
-        100.0,
-        material_ground,
+        Vec3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        ground_material,
     )));
 
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rand_f32();
+            let center = Vec3::new(
+                a as f32 + 0.9 * rand_f32(),
+                0.2,
+                b as f32 + 0.9 * rand_f32(),
+            );
+
+            if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                match choose_mat {
+                    0.0..0.8 => {
+                        // Diffuse
+                        let albedo = random_vec() * random_vec();
+                        let sphere_material = Material::Lambartian { albedo };
+                        world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    }
+
+                    0.8..0.95 => {
+                        // Metal
+                        let albedo = random_range(0.5, 1.0);
+                        let fuzz = rand(0.0, 0.5);
+                        let sphere_material = Material::Metal { albedo, fuzz };
+                        world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    }
+
+                    _ => {
+                        // Glass
+                        let sphere_material = Material::Dialetric {
+                            refraction_index: 1.5,
+                        };
+                        world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    }
+                }
+            }
+        }
+    }
+
+    let material1 = Material::Dialetric {
+        refraction_index: 1.5,
+    };
     world.add(Box::new(Sphere::new(
-        Vec3::new(0.0, 0.0, -1.2),
-        0.5,
-        material_center,
+        Vec3::new(0.0, 1.0, 0.0),
+        1.0,
+        material1,
     )));
+
+    let material2 = Material::Lambartian {
+        albedo: Vec3::new(0.4, 0.2, 0.1),
+    };
+
     world.add(Box::new(Sphere::new(
-        Vec3::new(-1.0, 0.0, -1.0),
-        0.5,
-        material_left,
+        Vec3::new(-4.0, 1.0, 0.0),
+        1.0,
+        material2,
     )));
+
+    let material3 = Material::Metal {
+        albedo: Vec3::new(0.7, 0.6, 0.5),
+        fuzz: 0.0,
+    };
+
     world.add(Box::new(Sphere::new(
-        Vec3::new(-1.0, 0.0, -1.0),
-        0.4,
-        material_bubble,
-    )));
-    world.add(Box::new(Sphere::new(
-        Vec3::new(1.0, 0.0, -1.0),
-        0.5,
-        material_right,
+        Vec3::new(4.0, 1.0, 0.0),
+        1.0,
+        material3,
     )));
 
     let mut cam = Camera::default();
-
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
-    cam.samples_per_pixel = 100;
+    cam.image_width = 1920;
+    cam.samples_per_pixel = 500;
     cam.max_depth = 50;
 
     cam.vfov = 20.0;
-    cam.look_from = Vec3::new(-2.0, 2.0, 1.0);
-    cam.look_at = Vec3::new(0.0, 0.0, -1.0);
+    cam.look_from = Vec3::new(13.0, 2.0, 3.0);
+    cam.look_at = Vec3::new(0.0, 0.0, 0.0);
     cam.vup = Vec3::new(0.0, 1.0, 0.0);
 
-    cam.defocus_angle = 10.0;
-    cam.focus_dist = 3.4;
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
 
     cam.render(&world);
 }
