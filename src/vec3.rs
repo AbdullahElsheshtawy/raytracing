@@ -72,6 +72,16 @@ pub fn cross(v1: &Vec3, v2: &Vec3) -> Vec3 {
     )
 }
 
+pub fn rand_in_unit_disk() -> Vec3 {
+    loop {
+        let p = Vec3::new(rand(-1.0, 1.0), rand(-1.0, 1.0), 0.0);
+
+        if p.length_squared() < 1.0 {
+            return p;
+        }
+    }
+}
+
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     *v - 2.0 * dot(v, n) * *n
 }
