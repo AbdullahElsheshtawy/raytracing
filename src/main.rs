@@ -62,8 +62,17 @@ fn main() {
         0.5,
         material_right,
     )));
-    let mut cam = Camera::new(1920, 16.0 / 9.0);
-    cam.samples_per_pixel = 1000;
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+
+    cam.vfov = 20.0;
+    cam.look_from = Vec3::new(-2.0, 2.0, 1.0);
+    cam.look_at = Vec3::new(0.0, 0.0, -1.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
     cam.render(&world);
 }
