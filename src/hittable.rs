@@ -2,7 +2,7 @@ use crate::{interval::Interval, material::Material, ray::Ray, vec3::dot, Vec3};
 
 #[derive(Clone, Copy, Default)]
 pub struct HitRecord {
-    front_face: bool,
+    pub front_face: bool,
     pub mat: Material,
     pub normal: Vec3,
     pub p: Vec3,

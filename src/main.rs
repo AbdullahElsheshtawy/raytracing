@@ -24,10 +24,13 @@ fn main() {
         albedo: Vec3::new(0.1, 0.2, 0.5),
     };
 
-    let material_left = Material::Metal {
-        albedo: Vec3::new(0.8, 0.8, 0.8),
-        fuzz: 0.3,
+    let material_left = Material::Dialetric {
+        refraction_index: 1.50,
     };
+    let material_bubble = Material::Dialetric {
+        refraction_index: 1.00 / 1.50,
+    };
+
     let material_right = Material::Metal {
         albedo: Vec3::new(0.8, 0.6, 0.2),
         fuzz: 1.0,
@@ -48,6 +51,11 @@ fn main() {
         Vec3::new(-1.0, 0.0, -1.0),
         0.5,
         material_left,
+    )));
+    world.add(Box::new(Sphere::new(
+        Vec3::new(-1.0, 0.0, -1.0),
+        0.4,
+        material_bubble,
     )));
     world.add(Box::new(Sphere::new(
         Vec3::new(1.0, 0.0, -1.0),
