@@ -13,31 +13,39 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
+    #[inline]
     pub fn length(&self) -> f32 {
         f32::sqrt(self.length_squared())
     }
 
+    #[inline]
     pub fn length_squared(&self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
+    #[inline]
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3 { x, y, z }
     }
 
+    #[inline]
     pub fn normalize(&self) -> Vec3 {
         *self / self.length()
     }
+    #[inline]
     pub fn x(&self) -> f32 {
         self.x
     }
+    #[inline]
     pub fn y(&self) -> f32 {
         self.y
     }
+    #[inline]
     pub fn z(&self) -> f32 {
         self.z
     }
 
+    #[inline]
     pub fn near_zero(&self) -> bool {
         // Return true if the vector is close to zero in all dimensions.
         let s = 1e-8;
@@ -45,10 +53,12 @@ impl Vec3 {
     }
 }
 
+#[inline]
 pub fn random_range(min: f32, max: f32) -> Vec3 {
     Vec3::new(rand(min, max), rand(min, max), rand(min, max))
 }
 
+#[inline]
 pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f32) -> Vec3 {
     let cos_theta = dot(&-*uv, n).min(1.0);
     let r_out_perp = etai_over_etat * (*uv + cos_theta * *n);
@@ -56,10 +66,12 @@ pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f32) -> Vec3 {
     r_out_perp + r_out_parallel
 }
 
+#[inline]
 pub fn dot(v1: &Vec3, v2: &Vec3) -> f32 {
     v1.x() * v2.x() + v1.y() * v2.y() + v1.z() * v2.z()
 }
 
+#[inline]
 pub fn cross(v1: &Vec3, v2: &Vec3) -> Vec3 {
     Vec3::new(
         v1.y() * v2.z() - v1.z() * v2.y(),
@@ -68,6 +80,7 @@ pub fn cross(v1: &Vec3, v2: &Vec3) -> Vec3 {
     )
 }
 
+#[inline]
 pub fn rand_in_unit_disk() -> Vec3 {
     loop {
         let p = Vec3::new(rand(-1.0, 1.0), rand(-1.0, 1.0), 0.0);
@@ -78,9 +91,12 @@ pub fn rand_in_unit_disk() -> Vec3 {
     }
 }
 
+#[inline]
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     *v - 2.0 * dot(v, n) * *n
 }
+
+#[inline]
 pub fn random_vec() -> Vec3 {
     loop {
         let p = random_range(-1.0, 1.0);
@@ -100,6 +116,7 @@ impl Display for Vec3 {
 impl Div<f32> for Vec3 {
     type Output = Vec3;
 
+    #[inline]
     fn div(self, rhs: f32) -> Self::Output {
         Vec3::new(self.x / rhs, self.y / rhs, self.z / rhs)
     }
@@ -108,6 +125,7 @@ impl Div<f32> for Vec3 {
 impl Div<i32> for Vec3 {
     type Output = Vec3;
 
+    #[inline]
     fn div(self, rhs: i32) -> Self::Output {
         Vec3::new(
             self.x / rhs as f32,
@@ -117,6 +135,7 @@ impl Div<i32> for Vec3 {
     }
 }
 impl DivAssign<f32> for Vec3 {
+    #[inline]
     fn div_assign(&mut self, rhs: f32) {
         *self = *self / rhs;
     }
@@ -124,12 +143,14 @@ impl DivAssign<f32> for Vec3 {
 impl Div for Vec3 {
     type Output = Vec3;
 
+    #[inline]
     fn div(self, rhs: Self) -> Self::Output {
         Vec3::new(self.x / rhs.x, self.y / rhs.y, self.z / rhs.z)
     }
 }
 
 impl DivAssign for Vec3 {
+    #[inline]
     fn div_assign(&mut self, rhs: Self) {
         *self = *self / rhs;
     }
@@ -137,6 +158,7 @@ impl DivAssign for Vec3 {
 
 impl Mul<i32> for Vec3 {
     type Output = Vec3;
+    #[inline]
     fn mul(self, rhs: i32) -> Self::Output {
         Vec3::new(
             self.x * rhs as f32,
@@ -148,6 +170,7 @@ impl Mul<i32> for Vec3 {
 impl Mul<f32> for Vec3 {
     type Output = Vec3;
 
+    #[inline]
     fn mul(self, rhs: f32) -> Self::Output {
         Vec3::new(self.x * rhs, self.y * rhs, self.z * rhs)
     }
@@ -155,12 +178,14 @@ impl Mul<f32> for Vec3 {
 
 impl Mul<Vec3> for f32 {
     type Output = Vec3;
+    #[inline]
     fn mul(self, rhs: Vec3) -> Self::Output {
         Vec3::new(rhs.x * self, rhs.y * self, rhs.z * self)
     }
 }
 
 impl MulAssign<f32> for Vec3 {
+    #[inline]
     fn mul_assign(&mut self, rhs: f32) {
         *self = *self * rhs;
     }
@@ -168,12 +193,14 @@ impl MulAssign<f32> for Vec3 {
 
 impl Mul for Vec3 {
     type Output = Vec3;
+    #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
         Vec3::new(self.x * rhs.x, self.y * rhs.y, self.z * rhs.z)
     }
 }
 
 impl MulAssign for Vec3 {
+    #[inline]
     fn mul_assign(&mut self, rhs: Self) {
         *self = *self * rhs;
     }
@@ -182,12 +209,14 @@ impl MulAssign for Vec3 {
 impl Sub for Vec3 {
     type Output = Vec3;
 
+    #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
         Vec3::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }
 
 impl SubAssign for Vec3 {
+    #[inline]
     fn sub_assign(&mut self, rhs: Self) {
         *self = *self - rhs;
     }
@@ -196,6 +225,7 @@ impl SubAssign for Vec3 {
 impl Add for Vec3 {
     type Output = Vec3;
 
+    #[inline]
     fn add(self, rhs: Self) -> Self::Output {
         Vec3::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
@@ -209,6 +239,7 @@ impl AddAssign for Vec3 {
 
 impl Neg for Vec3 {
     type Output = Vec3;
+    #[inline]
     fn neg(self) -> Self::Output {
         Vec3::new(-self.x, -self.y, -self.z)
     }

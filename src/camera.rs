@@ -1,4 +1,4 @@
-use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
+use rayon::prelude::*;
 
 use crate::{
     color::write_color,
@@ -42,27 +42,19 @@ pub struct Camera {
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
         self.initialize();
-        // Progress Bar
-        let pb = ProgressBar::new((self.image_width * self.image_height) as u64);
-        pb.set_style(
-        ProgressStyle::with_template(
-            "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({pos}/{len}, ETA {eta})",
-        )
-        .unwrap(),
-    );
-        // Render
-        println!("P3\n {} {}\n255\n", self.image_width, self.image_height);
 
-        for index in (0..(self.image_width * self.image_height)).progress_with(pb) {
-            let j = index / self.image_width; // Calculate the row (height)
-            let i = index % self.image_width; // Calculate the column (width)
-            let mut pixel_color = Vec3::default();
-            for _sample in 0..self.samples_per_pixel {
-                let r = self.get_ray(i, j);
-                pixel_color += self.ray_color(&r, self.max_depth, world);
-            }
-            write_color(&(pixel_color * self.pixel_samples_scale));
-        }
+        (0..(self.image_width * self.image_height))
+            /* .into_par_iter() */
+            .for_each(|index| {
+                let j = index / self.image_width; // Calculate the row (height)
+                let i = index % self.image_width; // Calculate the column (width)
+                let mut pixel_color = Vec3::default();
+                for _sample in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i, j);
+                    pixel_color += self.ray_color(&r, self.max_depth, world);
+                }
+                // write_color(&(pixel_color * self.pixel_samples_scale));
+            });
     }
 
     fn initialize(&mut self) {
