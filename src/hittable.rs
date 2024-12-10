@@ -1,4 +1,4 @@
-use crate::{interval::Interval, material::Material, ray::Ray, vec3::dot, Vec3};
+use crate::{material::Material, ray::Ray, vec3::dot, Vec3};
 
 #[derive(Clone, Copy, Default)]
 pub struct HitRecord {
@@ -9,10 +9,6 @@ pub struct HitRecord {
     pub t: f32,
 }
 
-pub trait Hittable {
-    fn hit(&self, r: &Ray, ray_t: Interval, rec: &mut HitRecord) -> bool;
-}
-
 impl HitRecord {
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
         // Sets the hit record normal vector.
@@ -20,9 +16,10 @@ impl HitRecord {
 
         self.front_face = dot(r.direction(), &outward_normal) < 0.0;
 
-        self.normal = match self.front_face {
-            true => outward_normal,
-            false => -outward_normal,
-        };
+        self.normal = if self.front_face {
+            outward_normal
+        } else {
+            -outward_normal
+        }
     }
 }

@@ -1,8 +1,11 @@
+#![allow(clippy::cast_precision_loss)]
+use std::io::Write;
+
 use rayon::prelude::*;
 
 use crate::{
-    color::write_color,
-    hittable::{HitRecord, Hittable},
+    color::linear_to_gamma,
+    hittable::HitRecord,
     hittable_list::HittableList,
     interval::Interval,
     ray::Ray,
@@ -13,8 +16,8 @@ use crate::{
 
 pub struct Camera {
     pub aspect_ratio: f32,      // Ratio of image width over height
-    pub image_width: i32,       // Rendered image width in pixel count
-    pub samples_per_pixel: i32, // Count of random samples for each pixel
+    pub image_width: u32,       // Rendered image width in pixel count
+    pub samples_per_pixel: u32, // Count of random samples for each pixel
     pub max_depth: u32,         // Maximum number of ray bounces into the scene
     pub vfov: f32,              // Vertical view angle (field of view)
     pub look_from: Vec3,        // Point camera is looking from
@@ -23,7 +26,7 @@ pub struct Camera {
     pub defocus_angle: f32,     // Variation angle of rays through each pixel
     pub focus_dist: f32,        // Distance from camera lookfrom point to plane of perfect focus
 
-    image_height: i32,          // Rendered image height
+    image_height: u32,          // Rendered image height
     pixel_samples_scale: f32,   // Color scale factor for a sum of pixel samples
     center: Vec3,               // Camera center
     upper_left_pixel_loc: Vec3, // Location of pixel (0, 0)
@@ -40,25 +43,55 @@ pub struct Camera {
 }
 
 impl Camera {
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     pub fn render(&mut self, world: &HittableList) {
         self.initialize();
 
-        (0..(self.image_width * self.image_height))
-            /* .into_par_iter() */
-            .for_each(|index| {
-                let j = index / self.image_width; // Calculate the row (height)
-                let i = index % self.image_width; // Calculate the column (width)
+        let image: Vec<Vec3> = (0..(self.image_width * self.image_height))
+            .into_par_iter()
+            .map(|pixel| {
+                let y = pixel / self.image_width; // Calculate the row (height)
+                let x = pixel % self.image_width; // Calculate the column (width)
                 let mut pixel_color = Vec3::default();
-                for _sample in 0..self.samples_per_pixel {
-                    let r = self.get_ray(i, j);
+                for _ in 0..self.samples_per_pixel {
+                    let r = self.get_ray(x, y);
                     pixel_color += self.ray_color(&r, self.max_depth, world);
                 }
-                // write_color(&(pixel_color * self.pixel_samples_scale));
-            });
+                pixel_color * self.pixel_samples_scale
+            })
+            .collect();
+
+        let file = std::fs::File::create("output.ppm").unwrap();
+        let mut writer = std::io::BufWriter::new(file);
+        write!(
+            writer,
+            "P3\n{} {}\n255\n",
+            self.image_width, self.image_height
+        )
+        .unwrap();
+
+        for pixel in image {
+            // Extract and apply a linear gamma transform for gamma 2
+            let (r, g, b) = (
+                linear_to_gamma(pixel.x()),
+                linear_to_gamma(pixel.y()),
+                linear_to_gamma(pixel.z()),
+            );
+
+            // Translate all the [0, 1] component values to the byte range [0, 255].
+            let rb = (256.0 * r.clamp(0.0, 0.999)) as u32;
+            let gb = (256.0 * g.clamp(0.0, 0.999)) as u32;
+            let bb = (256.0 * b.clamp(0.0, 0.999)) as u32;
+
+            writeln!(writer, "{rb} {gb} {bb}").unwrap();
+        }
     }
 
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     fn initialize(&mut self) {
-        self.image_height = (self.image_width as f32 / self.aspect_ratio) as i32;
+        self.image_height = (self.image_width as f32 / self.aspect_ratio) as u32;
         assert!(self.image_height > 1);
 
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f32;
@@ -97,10 +130,10 @@ impl Camera {
         self.defocus_disk_v = self.v * defocus_radius;
     }
 
-    fn get_ray(&self, i: i32, j: i32) -> Ray {
+    fn get_ray(&self, i: u32, j: u32) -> Ray {
         // Construct a camera ray originating from the defocus disk directed at randomly sampled
         // point around the pixel location (i, j).
-        let offset = self.sample_square();
+        let offset = Self::sample_square();
         let pixel_sample = self.upper_left_pixel_loc
             + ((i as f32 + offset.x()) * self.pixel_delta_u)
             + ((j as f32 + offset.y()) * self.pixel_delta_v);
@@ -113,7 +146,7 @@ impl Camera {
         Ray::new(ray_origin, ray_direction)
     }
 
-    fn sample_square(&self) -> Vec3 {
+    fn sample_square() -> Vec3 {
         // Returns the vector to a random point in the [-.5, -.5] - [+.5, +.5] unit square.
         Vec3::new(rand_f32() - 0.5, rand_f32() - 0.5, 0.0)
     }
@@ -124,6 +157,7 @@ impl Camera {
         self.center + (p.x() * self.defocus_disk_u) + (p.y() * self.defocus_disk_v)
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn ray_color(&self, r: &Ray, depth: u32, world: &HittableList) -> Vec3 {
         // If we've exceeded the ray bounce limit, no more light is gathered.
         if depth == 0 {
@@ -132,7 +166,7 @@ impl Camera {
 
         let mut rec = HitRecord::default();
 
-        if world.hit(r, Interval::new(0.001, f32::INFINITY), &mut rec) {
+        if world.hit(r, &Interval::new(0.001, f32::INFINITY), &mut rec) {
             let mut scattered = Ray::default();
             let mut attenuation = Vec3::default();
 
@@ -165,7 +199,7 @@ impl Default for Camera {
             w: Vec3::default(),
             v: Vec3::default(),
             pixel_samples_scale: f32::default(),
-            image_height: i32::default(),
+            image_height: u32::default(),
             center: Vec3::default(),
             upper_left_pixel_loc: Vec3::default(),
             pixel_delta_u: Vec3::default(),

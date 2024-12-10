@@ -1,3 +1,4 @@
+#![allow(clippy::cast_precision_loss)]
 use std::{
     fmt::Display,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
@@ -127,6 +128,18 @@ impl Div<i32> for Vec3 {
 
     #[inline]
     fn div(self, rhs: i32) -> Self::Output {
+        Vec3::new(
+            self.x / rhs as f32,
+            self.y / rhs as f32,
+            self.z / rhs as f32,
+        )
+    }
+}
+impl Div<u32> for Vec3 {
+    type Output = Vec3;
+
+    #[inline]
+    fn div(self, rhs: u32) -> Self::Output {
         Vec3::new(
             self.x / rhs as f32,
             self.y / rhs as f32,

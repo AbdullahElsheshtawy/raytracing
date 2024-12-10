@@ -24,21 +24,20 @@ impl Material {
     ) -> bool {
         match self {
             Material::Lambartian { albedo } => {
-                self.scatter_lambartian(*albedo, r_in, rec, attenuation, scattered)
+                Self::scatter_lambartian(*albedo, r_in, rec, attenuation, scattered)
             }
 
             Material::Metal { albedo, fuzz } => {
-                self.scatter_metal(*albedo, *fuzz, *r_in, *rec, attenuation, scattered)
+                Self::scatter_metal(*albedo, *fuzz, *r_in, *rec, attenuation, scattered)
             }
 
             Material::Dialetric { refraction_index } => {
-                self.scatter_dialetric(*refraction_index, *r_in, *rec, attenuation, scattered)
+                Self::scatter_dialetric(*refraction_index, *r_in, *rec, attenuation, scattered)
             }
         }
     }
 
     fn scatter_lambartian(
-        &self,
         albedo: Vec3,
         _r_in: &Ray,
         rec: &HitRecord,
@@ -56,7 +55,6 @@ impl Material {
     }
 
     fn scatter_metal(
-        &self,
         albedo: Vec3,
         fuzz: f32,
         r_in: Ray,
@@ -68,11 +66,10 @@ impl Material {
         reflected = reflected.normalize() + (fuzz * random_vec());
         *scattered = Ray::new(rec.p, reflected);
         *attenuation = albedo;
-        return dot(scattered.direction(), &rec.normal) > 0.0;
+        dot(scattered.direction(), &rec.normal) > 0.0
     }
 
     fn scatter_dialetric(
-        &self,
         refraction_index: f32,
         r_in: Ray,
         rec: HitRecord,

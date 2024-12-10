@@ -15,6 +15,7 @@ use sphere::Sphere;
 use util::{rand, rand_f32};
 use vec3::{random_range, random_vec, Vec3};
 
+#[allow(clippy::cast_precision_loss)]
 fn main() {
     let mut world = HittableList::default();
 
@@ -109,6 +110,14 @@ fn main() {
 
     let mut cam = Camera::default();
     cam.aspect_ratio = 16.0 / 9.0;
+    // High quality
+
+    // cam.image_width = 1920;
+    // cam.samples_per_pixel = 500;
+    // cam.max_depth = 50;
+
+    // Low quality
+
     cam.image_width = 400;
     cam.samples_per_pixel = 10;
     cam.max_depth = 10;
